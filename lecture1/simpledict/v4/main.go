@@ -52,11 +52,14 @@ type DictResponse struct {
 func query(word string) {
 	client := &http.Client{}
 	request := DictRequest{TransType: "en2zh", Source: word}
+	// 结构体 和 json 相对应， 可以直接用marshal进行转换
 	buf, err := json.Marshal(request)
 	if err != nil {
 		log.Fatal(err)
 	}
+	// json转字符串
 	var data = bytes.NewReader(buf)
+	// data是个流，因为这个data可能是个非常大的文件，最好用流
 	req, err := http.NewRequest("POST", "https://api.interpreter.caiyunai.com/v1/dict", data)
 	if err != nil {
 		log.Fatal(err)
@@ -83,8 +86,12 @@ func query(word string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// resp同样是个流，所以需要防止泄漏处理
+	// defer 在函数结束后，从下往上触发
 	defer resp.Body.Close()
+	// 将流读到内存中
 	bodyText, err := ioutil.ReadAll(resp.Body)
+	//fmt.Printf("%s\n", bodyText)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -92,10 +99,12 @@ func query(word string) {
 		log.Fatal("bad StatusCode:", resp.StatusCode, "body", string(bodyText))
 	}
 	var dictResponse DictResponse
+	// 使用结构体去接收json
 	err = json.Unmarshal(bodyText, &dictResponse)
 	if err != nil {
 		log.Fatal(err)
 	}
+	//fmt.Println(dictResponse)
 	fmt.Println(word, "UK:", dictResponse.Dictionary.Prons.En, "US:", dictResponse.Dictionary.Prons.EnUs)
 	for _, item := range dictResponse.Dictionary.Explanations {
 		fmt.Println(item)
@@ -103,10 +112,9 @@ func query(word string) {
 }
 
 func main() {
+	//fmt.Println(os.Args[0])
 	if len(os.Args) != 2 {
-		fmt.Fprintf(os.Stderr, `usage: simpleDict WORD
-example: simpleDict hello
-		`)
+		fmt.Fprintf(os.Stderr, `usage: simpleDict WORD example: simpleDict hello`)
 		os.Exit(1)
 	}
 	word := os.Args[1]

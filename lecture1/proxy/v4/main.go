@@ -18,22 +18,27 @@ const atypeHOST = 0x03
 const atypeIPV6 = 0x04
 
 func main() {
+	// 监听端口
 	server, err := net.Listen("tcp", "127.0.0.1:1080")
 	if err != nil {
 		panic(err)
 	}
 	for {
+		// 接受一个请求，建立这个链接
 		client, err := server.Accept()
 		if err != nil {
 			log.Printf("Accept failed %v", err)
 			continue
 		}
+		// 开一个新的线程来处理这个conn
 		go process(client)
 	}
 }
 
 func process(conn net.Conn) {
+	// defer 最后结束后，将这个链接关掉
 	defer conn.Close()
+	// 从这个链接中，读取流
 	reader := bufio.NewReader(conn)
 	err := auth(reader, conn)
 	if err != nil {
