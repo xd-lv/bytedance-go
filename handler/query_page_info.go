@@ -6,7 +6,7 @@ import (
 )
 
 func PublishPost(uidStr, topicIdStr, content string) *PageData {
-	// 1
+	// 12
 	//参数转换
 	uid, _ := strconv.ParseInt(uidStr, 10, 64)
 	topic, _ := strconv.ParseInt(topicIdStr, 10, 64)
